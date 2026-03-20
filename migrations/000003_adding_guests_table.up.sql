@@ -1,0 +1,8 @@
+CREATE TABLE guests (
+  guest_id UUID PRIMARY KEY,
+  user_agent TEXT,
+  ip_address TEXT,
+  created_at TIMESTAMP,
+  last_active TIMESTAMP,
+  slug TEXT UNIQUE
+)
