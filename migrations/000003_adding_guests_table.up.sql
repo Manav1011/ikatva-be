@@ -4,5 +4,5 @@ CREATE TABLE guests (
   ip_address TEXT,
   created_at TIMESTAMP,
   last_active TIMESTAMP,
-  slug TEXT UNIQUE
+  slug UUID UNIQUE DEFAULT gen_random_uuid()
 )

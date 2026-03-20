@@ -1,2 +1,2 @@
 ALTER TABLE users
-ADD COLUMN slug TEXT UNIQUE;
+ADD COLUMN slug UUID UNIQUE DEFAULT gen_random_uuid();
