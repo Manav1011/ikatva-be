@@ -8,32 +8,33 @@ package db
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/google/uuid"
 )
 
-const createUser = `-- name: createUser :one
+const createUser = `-- name: CreateUser :one
 INSERT INTO users (name, email, password_hash, is_active)
 VALUES ($1, $2, $3, true)
 RETURNING id, name, email, password_hash
 `
 
-type createUserParams struct {
+type CreateUserParams struct {
 	Name         sql.NullString `json:"name"`
 	Email        string         `json:"email"`
 	PasswordHash sql.NullString `json:"password_hash"`
 }
 
-type createUserRow struct {
+type CreateUserRow struct {
 	ID           uuid.UUID      `json:"id"`
 	Name         sql.NullString `json:"name"`
 	Email        string         `json:"email"`
 	PasswordHash sql.NullString `json:"password_hash"`
 }
 
-func (q *Queries) createUser(ctx context.Context, arg createUserParams) (createUserRow, error) {
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateUserRow, error) {
 	row := q.db.QueryRowContext(ctx, createUser, arg.Name, arg.Email, arg.PasswordHash)
-	var i createUserRow
+	var i CreateUserRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
@@ -43,22 +44,22 @@ func (q *Queries) createUser(ctx context.Context, arg createUserParams) (createU
 	return i, err
 }
 
-const getUserByEmail = `-- name: getUserByEmail :one
+const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT id, name, email, password_hash
 FROM users
 WHERE email = $1 AND is_active = true
 `
 
-type getUserByEmailRow struct {
+type GetUserByEmailRow struct {
 	ID           uuid.UUID      `json:"id"`
 	Name         sql.NullString `json:"name"`
 	Email        string         `json:"email"`
 	PasswordHash sql.NullString `json:"password_hash"`
 }
 
-func (q *Queries) getUserByEmail(ctx context.Context, email string) (getUserByEmailRow, error) {
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error) {
 	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
-	var i getUserByEmailRow
+	var i GetUserByEmailRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
@@ -68,27 +69,62 @@ func (q *Queries) getUserByEmail(ctx context.Context, email string) (getUserByEm
 	return i, err
 }
 
-const getUserByID = `-- name: getUserByID :one
+const getUserByID = `-- name: GetUserByID :one
 SELECT id, name, email, password_hash
 FROM users
 WHERE id = $1 AND is_active = true
 `
 
-type getUserByIDRow struct {
+type GetUserByIDRow struct {
 	ID           uuid.UUID      `json:"id"`
 	Name         sql.NullString `json:"name"`
 	Email        string         `json:"email"`
 	PasswordHash sql.NullString `json:"password_hash"`
 }
 
-func (q *Queries) getUserByID(ctx context.Context, id uuid.UUID) (getUserByIDRow, error) {
+func (q *Queries) GetUserByID(ctx context.Context, id uuid.UUID) (GetUserByIDRow, error) {
 	row := q.db.QueryRowContext(ctx, getUserByID, id)
-	var i getUserByIDRow
+	var i GetUserByIDRow
 	err := row.Scan(
 		&i.ID,
 		&i.Name,
 		&i.Email,
 		&i.PasswordHash,
+	)
+	return i, err
+}
+
+const insertRefreshToken = `-- name: InsertRefreshToken :one
+INSERT INTO refresh_tokens (user_id, token, expires_at)
+VALUES ($1, $2, $3)
+RETURNING id, user_id, token, expires_at, created_at, revoked
+`
+
+type InsertRefreshTokenParams struct {
+	UserID    uuid.UUID `json:"user_id"`
+	Token     string    `json:"token"`
+	ExpiresAt time.Time `json:"expires_at"`
+}
+
+type InsertRefreshTokenRow struct {
+	ID        uuid.UUID    `json:"id"`
+	UserID    uuid.UUID    `json:"user_id"`
+	Token     string       `json:"token"`
+	ExpiresAt time.Time    `json:"expires_at"`
+	CreatedAt sql.NullTime `json:"created_at"`
+	Revoked   sql.NullBool `json:"revoked"`
+}
+
+func (q *Queries) InsertRefreshToken(ctx context.Context, arg InsertRefreshTokenParams) (InsertRefreshTokenRow, error) {
+	row := q.db.QueryRowContext(ctx, insertRefreshToken, arg.UserID, arg.Token, arg.ExpiresAt)
+	var i InsertRefreshTokenRow
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Token,
+		&i.ExpiresAt,
+		&i.CreatedAt,
+		&i.Revoked,
 	)
 	return i, err
 }
