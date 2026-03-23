@@ -31,3 +31,11 @@ func (r *UserRepository) GetByID(ctx context.Context, id uuid.UUID) (sqldb.GetUs
 func (r *UserRepository) InsertRefreshToken(ctx context.Context, arg sqldb.InsertRefreshTokenParams) (sqldb.InsertRefreshTokenRow, error) {
 	return r.q.InsertRefreshToken(ctx, arg)
 }
+
+func (r *UserRepository) GetRefreshToken(ctx context.Context, token string) (sqldb.GetRefreshTokenRow, error) {
+	return r.q.GetRefreshToken(ctx, token)
+}
+
+func (r *UserRepository) RevokeRefreshToken(ctx context.Context, token string) error {
+	return r.q.RevokeRefreshToken(ctx, token)
+}

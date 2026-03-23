@@ -14,8 +14,8 @@ import (
 )
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (id, name, email, password_hash, is_active, created_at, updated_at)
-VALUES (gen_random_uuid(), $1, $2, $3, true, NOW(), NOW())
+INSERT INTO users (name, email, password_hash, is_active)
+VALUES ($1, $2, $3, true)
 RETURNING id, name, email, password_hash
 `
 
@@ -41,6 +41,24 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (CreateU
 		&i.Email,
 		&i.PasswordHash,
 	)
+	return i, err
+}
+
+const getRefreshToken = `-- name: GetRefreshToken :one
+SELECT id, revoked
+FROM refresh_tokens
+WHERE token = $1
+`
+
+type GetRefreshTokenRow struct {
+	ID      uuid.UUID    `json:"id"`
+	Revoked sql.NullBool `json:"revoked"`
+}
+
+func (q *Queries) GetRefreshToken(ctx context.Context, token string) (GetRefreshTokenRow, error) {
+	row := q.db.QueryRowContext(ctx, getRefreshToken, token)
+	var i GetRefreshTokenRow
+	err := row.Scan(&i.ID, &i.Revoked)
 	return i, err
 }
 
@@ -127,4 +145,15 @@ func (q *Queries) InsertRefreshToken(ctx context.Context, arg InsertRefreshToken
 		&i.Revoked,
 	)
 	return i, err
+}
+
+const revokeRefreshToken = `-- name: RevokeRefreshToken :exec
+UPDATE refresh_tokens
+SET revoked = true
+WHERE token = $1
+`
+
+func (q *Queries) RevokeRefreshToken(ctx context.Context, token string) error {
+	_, err := q.db.ExecContext(ctx, revokeRefreshToken, token)
+	return err
 }

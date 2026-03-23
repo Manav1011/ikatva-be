@@ -17,3 +17,14 @@ RETURNING id, name, email, password_hash;
 INSERT INTO refresh_tokens (user_id, token, expires_at)
 VALUES ($1, $2, $3)
 RETURNING id, user_id, token, expires_at, created_at, revoked;
+
+
+-- name: GetRefreshToken :one
+SELECT id, revoked
+FROM refresh_tokens
+WHERE token = $1;
+
+-- name: RevokeRefreshToken :exec
+UPDATE refresh_tokens
+SET revoked = true
+WHERE token = $1;

@@ -81,3 +81,34 @@ func (h *UserHandler) Signup(c *gin.Context) {
 
 	utils.Success(c, data)
 }
+
+// Refresh validates a refresh token and issues new access and refresh tokens.
+// @Summary      Refresh tokens
+// @Description  Validates a refresh token and issues new access and refresh tokens.
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Param        body  body      model.RefreshRequest  true  "Refresh token"
+// @Success      200   {object}  model.RefreshSuccessEnvelope
+// @Failure      400   {object}  utils.APIResponse
+// @Failure      401   {object}  utils.APIResponse
+// @Failure      500   {object}  utils.APIResponse
+// @Router       /users/refresh [post]
+func (h *UserHandler) Refresh(c *gin.Context) {
+	var req model.RefreshRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.Error(c, "invalid request body", http.StatusBadRequest)
+		return
+	}
+	data, err := h.svc.Refresh(c.Request.Context(), req.RefreshToken)
+	if err != nil {
+		if errors.Is(err, service.ErrInvalidCredentials) {
+			utils.Error(c, "invalid refresh token", http.StatusUnauthorized)
+			return
+		}
+		utils.Error(c, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	utils.Success(c, data)
+}

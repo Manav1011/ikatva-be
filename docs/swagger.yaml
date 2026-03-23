@@ -37,17 +37,23 @@ definitions:
       id:
         type: string
     type: object
-  model.SignupRequest:
+  model.RefreshRequest:
     properties:
-      email:
-        type: string
-      name:
-        type: string
-      password:
+      refresh_token:
         type: string
     required:
-    - email
-    - password
+    - refresh_token
+    type: object
+  model.RefreshSuccessEnvelope:
+    properties:
+      access_token:
+        type: string
+      expires_in:
+        type: integer
+      refresh_token:
+        type: string
+      token_type:
+        type: string
     type: object
   utils.APIResponse:
     properties:
@@ -113,25 +119,25 @@ paths:
       summary: User login
       tags:
       - user
-  /users/signup:
+  /users/refresh:
     post:
       consumes:
       - application/json
-      description: Creates a new user.
+      description: Validates a refresh token and issues new access and refresh tokens.
       parameters:
-      - description: Name, email and password
+      - description: Refresh token
         in: body
         name: body
         required: true
         schema:
-          $ref: '#/definitions/model.SignupRequest'
+          $ref: '#/definitions/model.RefreshRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.LoginSuccessEnvelope'
+            $ref: '#/definitions/model.RefreshSuccessEnvelope'
         "400":
           description: Bad Request
           schema:
@@ -144,9 +150,12 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.APIResponse'
-      summary: User signup
+      summary: Refresh tokens
       tags:
       - user
+  /users/signup:
+    post:
+      responses: {}
 schemes:
 - http
 swagger: "2.0"

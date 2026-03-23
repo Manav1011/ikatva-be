@@ -90,9 +90,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/signup": {
+        "/users/refresh": {
             "post": {
-                "description": "Creates a new user.",
+                "description": "Validates a refresh token and issues new access and refresh tokens.",
                 "consumes": [
                     "application/json"
                 ],
@@ -102,15 +102,15 @@ const docTemplate = `{
                 "tags": [
                     "user"
                 ],
-                "summary": "User signup",
+                "summary": "Refresh tokens",
                 "parameters": [
                     {
-                        "description": "Name, email and password",
+                        "description": "Refresh token",
                         "name": "body",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.SignupRequest"
+                            "$ref": "#/definitions/model.RefreshRequest"
                         }
                     }
                 ],
@@ -118,7 +118,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/model.LoginSuccessEnvelope"
+                            "$ref": "#/definitions/model.RefreshSuccessEnvelope"
                         }
                     },
                     "400": {
@@ -140,6 +140,11 @@ const docTemplate = `{
                         }
                     }
                 }
+            }
+        },
+        "/users/signup": {
+            "post": {
+                "responses": {}
             }
         }
     },
@@ -201,20 +206,30 @@ const docTemplate = `{
                 }
             }
         },
-        "model.SignupRequest": {
+        "model.RefreshRequest": {
             "type": "object",
             "required": [
-                "email",
-                "password"
+                "refresh_token"
             ],
             "properties": {
-                "email": {
+                "refresh_token": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.RefreshSuccessEnvelope": {
+            "type": "object",
+            "properties": {
+                "access_token": {
                     "type": "string"
                 },
-                "name": {
+                "expires_in": {
+                    "type": "integer"
+                },
+                "refresh_token": {
                     "type": "string"
                 },
-                "password": {
+                "token_type": {
                     "type": "string"
                 }
             }

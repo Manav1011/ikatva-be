@@ -21,7 +21,7 @@ type Config struct {
 }
 
 func LoadConfig() *Config {
-	err := godotenv.Load("/home/manav1011/Documents/ikatva-be/.env")
+	err := godotenv.Load("/home/web-h-063/Documents/ikatva-be/.env")
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}

@@ -11,4 +11,5 @@ func RegisterRoutes(v1 *gin.RouterGroup, h *handler.UserHandler) {
 	users := v1.Group("/users")
 	users.POST("/login", h.Login)
 	users.POST("/signup", h.Signup)
+	users.POST("/refresh", h.Refresh)
 }

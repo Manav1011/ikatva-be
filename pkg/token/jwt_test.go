@@ -18,7 +18,7 @@ func TestGenerateAccessToken(t *testing.T) {
 }
 
 func TestParseToken(t *testing.T) {
-	userID := "test-user-456"
+	userID := "63bdcfa3-5b91-4fd9-a870-8d4a86528ee3"
 	token, _ := GenerateAccessToken(userID)
 
 	claims, err := ParseToken(token)
