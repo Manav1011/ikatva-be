@@ -17,6 +17,8 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 
 	_ "github.com/manav1011/ikatva-be/docs" // swagger docs (swag init)
+
+	response "github.com/manav1011/ikatva-be/pkg/utils"
 )
 
 // @title           Ikatva API
@@ -34,7 +36,7 @@ import (
 // @Success      200  {object}  map[string]string
 // @Router       /health [get]
 func health(c *gin.Context) {
-	c.JSON(200, gin.H{"status": "ok"})
+	response.Success(c, nil)
 }
 
 func main() {
@@ -46,6 +48,7 @@ func main() {
 	defer sqlDB.Close()
 
 	queries := sqldb.New(sqlDB)
+	// User app
 	userRepo := repository.NewUserRepository(queries)
 	userSvc := service.NewUserService(userRepo, cfg)
 	userHandler := handler.NewUserHandler(userSvc)

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/manav1011/ikatva-be/internal/config"
 	sqldb "github.com/manav1011/ikatva-be/internal/db/sqlc"
 	"github.com/manav1011/ikatva-be/internal/user/model"
@@ -17,6 +18,9 @@ import (
 
 // ErrInvalidCredentials is returned when login cannot be satisfied (wrong email/password or inactive user).
 var ErrInvalidCredentials = errors.New("invalid credentials")
+
+// ErrUserAlreadyExists is returned when during signup the email is already in use.
+var ErrUserAlreadyExists = errors.New("user already exists")
 
 type UserService struct {
 	repo *repository.UserRepository
@@ -73,5 +77,33 @@ func (s *UserService) Login(ctx context.Context, email, password string) (*model
 			ID:    row.ID,
 			Email: row.Email,
 		},
+	}, nil
+}
+
+// Signup
+func (s *UserService) Signup(ctx context.Context, name, email, password string) (*model.LoginUser, error) {
+	// hash password
+	passHashed, err := utils.HashPassword(password)
+	if err != nil {
+		return nil, fmt.Errorf("hash password: %w", err)
+	}
+	// create the user
+	row, err := s.repo.Create(ctx, sqldb.CreateUserParams{
+		Name:         sql.NullString{String: name, Valid: true},
+		Email:        email,
+		PasswordHash: sql.NullString{String: passHashed, Valid: true},
+	})
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == "23505" { // unique_violation
+				return nil, ErrUserAlreadyExists
+			}
+		}
+		return nil, fmt.Errorf("create user: %w", err)
+	}
+	return &model.LoginUser{
+		ID:    row.ID,
+		Email: row.Email,
 	}, nil
 }

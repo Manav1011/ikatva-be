@@ -49,3 +49,35 @@ func (h *UserHandler) Login(c *gin.Context) {
 
 	utils.Success(c, data)
 }
+
+// Signup creates a new user.
+// @Summary      User signup
+// @Description  Creates a new user.
+// @Tags         user
+// @Accept       json
+// @Produce      json
+// @Param        body  body      model.SignupRequest  true  "Name, email and password"
+// @Success      200   {object}  model.LoginSuccessEnvelope
+// @Failure      400   {object}  utils.APIResponse
+// @Failure      409   {object}  utils.APIResponse
+// @Failure      500   {object}  utils.APIResponse
+
+// @Router       /users/signup [post]
+func (h *UserHandler) Signup(c *gin.Context) {
+	var req model.SignupRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.Error(c, "invalid request body", http.StatusBadRequest)
+		return
+	}
+	data, err := h.svc.Signup(c.Request.Context(), req.Name, req.Email, req.Password)
+	if err != nil {
+		if errors.Is(err, service.ErrUserAlreadyExists) {
+			utils.Error(c, "email already registered", http.StatusConflict)
+			return
+		}
+		utils.Error(c, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	utils.Success(c, data)
+}
